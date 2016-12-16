@@ -1,0 +1,211 @@
+<html>
+<head>
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/cupertino/jquery-ui.css" type="text/css" rel="stylesheet" >
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://rawgithub.com/carlo/jquery-base64/master/jquery.base64.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="https://rawgithub.com/BorisMoore/jquery-tmpl/master/jquery.tmpl.min.js"></script>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<style type="text/css">
+    .classWithPad { margin:10px; padding:10px; }
+    #invisible_link{display: none;}
+</style>
+
+<body>
+<script>
+
+    $(function() {
+        $("#keyword").autocomplete({
+            source: function(request, response) {
+                var wildcard = { "name": "*" + request.term.toLowerCase() + "*" };
+                var postData = {
+                    "query": { "wildcard": wildcard }                    
+                };
+                $.ajax({
+                    url: "http://localhost:9200/bookmyshow/movies/_search",
+                    type: "POST",
+                    dataType: "JSON",
+                    data: JSON.stringify(postData),
+                    success: function(data) {
+                        response($.map(data.hits.hits, function(item) {                                          
+                            var obj = {
+                                movie: item._source.name,
+                                id: item._source.id
+                            }
+                            return obj.id + ":" + obj.movie;
+                            //return obj.movie;
+                        }));
+                    },
+                });
+            },
+            minLength: 2
+        })
+
+        $("#venue").autocomplete({
+            source: function(request, response) {
+                var wildcard = { "name": "*" + request.term.toLowerCase() + "*" };
+                var postData = {
+                    "query": { "wildcard": wildcard }                    
+                };
+                $.ajax({
+                    url: "http://localhost:9200/bookmyshow/venues/_search",
+                    type: "POST",
+                    dataType: "JSON",
+                    data: JSON.stringify(postData),
+                    success: function(data) {
+                        response($.map(data.hits.hits, function(item) {                                          
+                            var obj = {
+                                venue: item._source.name,
+                                code: item._source.code
+                            }
+                            return obj.code + ":" + obj.venue;
+                            //return obj.movie;
+                        }));
+                    },
+                });
+            },
+            minLength: 2
+        })
+
+        $("#city").autocomplete({
+            source: function(request, response) {
+                var wildcard = { "name": "*" + request.term.toLowerCase() + "*" };
+                var postData = {
+                    "query": { "wildcard": wildcard }                    
+                };
+                $.ajax({
+                    url: "http://localhost:9200/bookmyshow/regions/_search",
+                    type: "POST",
+                    dataType: "JSON",
+                    data: JSON.stringify(postData),
+                    success: function(data) {
+
+                        response($.map(data.hits.hits, function(item) {                                          
+                            var obj = {
+                                venue: item._source.name,
+                                code: item._source.code
+                            }
+                            return obj.code + ":" + obj.venue;
+                            //return obj.movie;
+                        }));
+                    },
+                });
+            },
+            minLength: 2
+        })
+
+        String.prototype.replaceAll = function(search, replacement) {
+            var target = this;
+            return target.replace(new RegExp(search, 'g'), replacement);
+        };
+
+        $("#generate_url").on("click", function(){
+            var regionInput = $("#city").val();
+            var movieInput = $("#keyword").val();
+            var venueInput = $("#venue").val();
+            
+            var regionInputCode, region, movieInputCode, movie, venueInputCode, venue, bmsVenueUrl, bmsMovieUrl, bmsRegionUrl;
+
+            if(regionInput){
+                regionInputCode = regionInput.substring(0,regionInput.indexOf(':')).trim().toLowerCase();
+                region = regionInput.substring(regionInput.indexOf(':') + 1, regionInput.length).trim().toLowerCase();    
+                bmsRegionUrl = region.replace(/[^a-zA-Z ]/g, "").trim();
+                bmsRegionUrl = bmsRegionUrl.replaceAll(" ", "-");
+            }
+
+            if(movieInput){
+                movieInputCode = movieInput.substring(0,movieInput.indexOf(':')).trim();
+                movie = movieInput.substring(movieInput.indexOf(':') + 1, movieInput.length).trim().toLowerCase();    
+                bmsMovieUrl = movie.replace(/[^a-zA-Z ]/g, "").trim();
+                bmsMovieUrl = bmsMovieUrl.replaceAll(" ", "-");
+            }
+
+            if(venueInput){
+                venueInputCode = venueInput.substring(0,venueInput.indexOf(':')).trim();
+                venue = venueInput.substring(venueInput.indexOf(':') + 1, venueInput.length).trim().toLowerCase();    
+                bmsVenueUrl = venue.replace(/[^a-zA-Z ]/g, "").trim();
+                bmsVenueUrl = bmsVenueUrl.replaceAll(" ", "-");
+            }                        
+            
+            console.log(venueInputCode);
+            console.log(venue);
+            console.log(movieInputCode);
+            console.log(movie);
+            console.log(regionInputCode);
+            console.log(region);
+
+            
+            console.log(bmsVenueUrl);
+            
+            
+
+            var bmsUrl;
+
+            /** by venue **/
+            console.log("----")
+            console.log(venueInput)
+            console.log(movieInput);
+            if(venueInput){
+                bmsUrl = "https://in.bookmyshow.com/buytickets/" + bmsVenueUrl + "/cinema-"+regionInputCode+"-"+venueInputCode+"-MT";
+                console.log("region");
+                console.log(bmsUrl);
+                window.open(bmsUrl, '_blank');
+
+            }
+
+            if(movieInput){
+                bmsUrl = "https://in.bookmyshow.com/buytickets/" + bmsMovieUrl + "-" + bmsRegionUrl + "/movie-" + regionInputCode + "-" + movieInputCode + "-MT";   
+                console.log("movie");
+                console.log(bmsUrl);
+                window.open(bmsUrl, '_blank');
+            }
+            
+
+        })
+
+        $("#invisible_link").on("click", function(){
+            alert(this.href);            
+        })
+
+    });
+
+</script>
+
+<div class="container">
+  <div class="jumbotron">
+    <h1>BMS Search</h1> 
+    <p>Search engine for BookMyShow</p> 
+  </div>    
+
+  <div class="col-md-12">
+
+  <div class="ui-widget col-md-4">
+    <label for="city">City : </label>
+    <input id="city">
+  </div>
+
+  <div class="ui-widget col-md-4">
+    <label for="keyword">Movie : </label>
+    <input id="keyword">
+  </div>
+
+  <div class="ui-widget col-md-4">
+    <label for="venue">Venue : </label>
+    <input id="venue">
+  </div>
+  </div>
+    
+    <div class="col-md-12 classWithPad">
+    <div class="col-md-3 col-md-offset-5 ">
+    <button class="btn-success" id="generate_url">Generate URL</button>
+    <a href="#" id="invisible_link" target="_blank">URL link</a>
+    </div>
+    </div>  
+
+</div>
+
+</body>
+</html>
