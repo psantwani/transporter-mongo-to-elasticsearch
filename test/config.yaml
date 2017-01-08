@@ -1,10 +1,10 @@
 nodes:
   localmongo:
     type: mongo
-    uri: mongodb://127.0.0.1:27017/foo
+    uri: mongodb://127.0.0.1:27017/elasticsearch
   es:
     type: elasticsearch
-    uri: http://localhost:9200/  
+    uri: http://localhost:9200/bookmyshow
   debug:
     type: file
     uri: stdout://
